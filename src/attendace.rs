@@ -18,17 +18,31 @@ impl AttendanceList {
     }
 
     pub fn fetch_list(&mut self, session: &Session, handle: &mut Easy) {
+        handle.url(URL).unwrap();
+        handle.get(true).unwrap();
+        handle.cookie(session.get_id()).unwrap();
+        
+        {
+            let mut transfer = handle.transfer();
 
+            transfer.write_function(|body|
+                Ok(body.len())
+            ).unwrap();
+        }
     }
 }
+
 pub struct AttendanceEntry {
     code: String,
     name: String,
     class: String,
-    percentage: u8,
-    details: Option<AttendanceEntryDetail>,
+    stat: AttendanceStat,
+    details: Option<AttendanceDetail>,
 }
 
-struct AttendanceEntryDetail {
+struct AttendanceStat {
 
+}
+
+struct AttendanceDetail {
 }

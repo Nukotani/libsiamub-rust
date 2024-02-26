@@ -1,17 +1,21 @@
 use curl::easy::{Easy, Form};
 
 const URL: &str = "https://siam.ub.ac.id/index.php";
-
+const USER_AGENT: &str = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 #[derive(Debug)]
 pub struct Session {
+    handle: Easy,
     id: String,
 }
 
 impl Session {
     pub fn new() -> Session {
         let id = String::new();
+        let mut handle = Easy::new();
+        handle.useragent(USER_AGENT).unwrap();
         Session {
+            handle,
             id,
         }
     }
@@ -30,12 +34,10 @@ impl Session {
         handle.post(true).unwrap();
         handle.httppost(form).unwrap();
 
-        handle.verbose(true).unwrap();
-
         {
             let mut transfer = handle.transfer();
             transfer.header_function(|header| {
-                self.get_id_from_header(header);
+                self.set_id_from_header(header);
                 true
             }).unwrap();
             transfer.perform().unwrap();
@@ -43,7 +45,7 @@ impl Session {
     }
 
     //TODO: OPTIMIZE!
-    fn get_id_from_header(&mut self, header: &[u8]) {
+    fn set_id_from_header(&mut self, header: &[u8]) {
         let header = String::from_utf8(header.to_vec()).unwrap();
 
         for mut line in header.split("\n") {
@@ -55,6 +57,10 @@ impl Session {
                 self.id = id.to_string();
             }
         }
+    }
+
+    pub fn get_id(&self) -> &str {
+        self.id.as_str()
     }
 }
 
