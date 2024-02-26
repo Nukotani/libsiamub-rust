@@ -2,34 +2,32 @@ use curl::easy::{Easy, Form};
 
 const DOMAIN: &str = "https://siam.ub.ac.id";
 
+const USER_AGENT: &str = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+#[derive(Debug)]
 pub struct Session {
-    cookies: Vec<String>,
+    id: String,
 }
 
 impl Session {
     pub fn new() -> Session {
-        let cookies = Vec::<String>::new();
+        let id = String::new();
         Session {
-            cookies
+            id,
         }
     }
 
-    pub fn add_cookie(&mut self, cookie: String) {
-        self.cookies.push(cookie);
-    }
-
     //TODO: OPTIMIZE!
-    pub fn get_cookeis_from_header(&mut self, header: &[u8]) {
+    pub fn get_id_from_header(&mut self, header: &[u8]) {
         let header = String::from_utf8(header.to_vec()).unwrap();
 
         for mut line in header.split("\n") {
             line = line.strip_prefix("\r").unwrap_or(line);
             if line.to_lowercase().contains("set-cookies") {
                 line = line.strip_prefix("set-cookies:").unwrap_or(line);
-                for mut cookie in line.split(";") {
-                    cookie = cookie.strip_prefix(" ").unwrap_or(cookie); 
-                    self.add_cookie(cookie.to_string());
-                }
+                let mut id = line.split(";").next().unwrap();
+                id = id.strip_prefix(" ").unwrap();
+                self.id = id.to_string();
             }
         }
     }
@@ -56,11 +54,18 @@ pub fn login(id: &str, pass: &str, handle: &mut Easy) -> Session {
     {
         let mut transfer = handle.transfer();
         transfer.header_function(|header| {
-            session.get_cookeis_from_header(header);
+            session.get_id_from_header(header);
             true
         }).unwrap();
         transfer.perform().unwrap();
     }
 
     return session;
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn login() {
+    }
 }
