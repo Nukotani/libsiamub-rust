@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 curl = "0.4.46"
-html5ever = "0.26.0"
+scraper = "0.18.1"
